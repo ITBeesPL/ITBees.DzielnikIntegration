@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITBees.DzielnikIntegration", "ITBees.DzielnikIntegration\ITBees.DzielnikIntegration.csproj", "{83D69820-7D82-4BA8-AF98-18599514953E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITBees.DzielnikIntegration.Fas", "ITBees.DzielnikIntegration.Fas\ITBees.DzielnikIntegration.Fas.csproj", "{CFAB4969-7B42-472F-B7FF-1A219E704638}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{83D69820-7D82-4BA8-AF98-18599514953E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83D69820-7D82-4BA8-AF98-18599514953E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83D69820-7D82-4BA8-AF98-18599514953E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83D69820-7D82-4BA8-AF98-18599514953E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFAB4969-7B42-472F-B7FF-1A219E704638}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFAB4969-7B42-472F-B7FF-1A219E704638}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFAB4969-7B42-472F-B7FF-1A219E704638}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFAB4969-7B42-472F-B7FF-1A219E704638}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

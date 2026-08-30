@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageId>ITBees.DzielnikIntegration</PackageId>
+    <Version>8.0.1</Version>
+    <Authors>ITBees</Authors>
+    <Description>Client of the dzielnik.com public API (/api/v1, X-Api-Key) with admin-editable settings stored in the host database: settings entity + service, /DzielnikIntegrationSettings and /DzielnikConnectionTest controllers, EF model registration. Invoice issuing pipelines live in companion packages (e.g. ITBees.DzielnikIntegration.Fas for the FAS payment stack).</Description>
+    <PackageTags>dzielnik;invoicing;ksef;faktura;integration</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ITBees.Interfaces" Version="8.0.72" />
+    <PackageReference Include="ITBees.RestfulApiControllers" Version="8.0.31" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>
