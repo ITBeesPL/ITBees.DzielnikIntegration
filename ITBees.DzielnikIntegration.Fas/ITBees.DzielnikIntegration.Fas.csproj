@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ITBees.FAS.Payments" Version="8.0.351" />
+    <PackageReference Include="ITBees.FAS.Payments" Version="8.0.356" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.10" />
   </ItemGroup>
 
