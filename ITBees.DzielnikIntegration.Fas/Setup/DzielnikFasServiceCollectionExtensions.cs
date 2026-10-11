@@ -1,4 +1,4 @@
-using ITBees.FAS.Payments.Interfaces;
+﻿using ITBees.FAS.Payments.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -21,6 +21,7 @@ public static class DzielnikFasServiceCollectionExtensions
         where TContext : DbContext
     {
         services.AddScoped<IDzielnikPaymentInvoiceService, DzielnikPaymentInvoiceService<TContext>>();
+        services.AddScoped<IDzielnikInvoiceCorrectionService, DzielnikInvoiceCorrectionService<TContext>>();
         services.AddSingleton<DzielnikInvoiceQueue>();
         services.TryAddSingleton<ISuccessfulPaymentInvoiceIssuer, DzielnikSuccessfulPaymentInvoiceIssuer>();
         services.AddHostedService<DzielnikInvoiceIssuerBackgroundService>();

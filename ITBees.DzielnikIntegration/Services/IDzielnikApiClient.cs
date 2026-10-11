@@ -1,4 +1,4 @@
-namespace ITBees.DzielnikIntegration.Services;
+﻿namespace ITBees.DzielnikIntegration.Services;
 
 /// <summary>
 /// Klient publicznego API dzielnik.com (/api/v1, uwierzytelnianie nagłówkiem X-Api-Key).
@@ -21,6 +21,14 @@ public interface IDzielnikApiClient
     /// </summary>
     Task<DzielnikApiSalesInvoice> SendInvoiceToKsefAsync(string baseUrl, string apiKey,
         string invoiceGuid, CancellationToken ct = default);
+
+    /// <summary>
+    /// POST /api/v1/sales-invoices/{guid}/corrections - wystawia fakturę korygującą do faktury już przyjętej przez
+    /// KSeF (korekty korekty Dzielnik nie wystawia). Pozycje w żądaniu to stan PO korekcie - pusta lista zeruje
+    /// całą fakturę. Korekta, jak faktura, idzie do KSeF dopiero jawnym <see cref="SendInvoiceToKsefAsync"/>.
+    /// </summary>
+    Task<DzielnikApiSalesInvoice> CreateCorrectionAsync(string baseUrl, string apiKey, string invoiceGuid,
+        DzielnikApiCorrectionRequest correctionRequest, CancellationToken ct = default);
 }
 
 /// <summary>Odpowiedź GET /api/v1/status.</summary>
@@ -70,6 +78,24 @@ public class DzielnikApiSalesInvoiceRequest
     public string? Notes { get; set; }
 }
 
+/// <summary>Żądanie POST /api/v1/sales-invoices/{guid}/corrections.</summary>
+public class DzielnikApiCorrectionRequest
+{
+    /// <summary>Przyczyna korekty - wymagana, trafia do KSeF (PrzyczynaKorekty).</summary>
+    public string Reason { get; set; } = "";
+
+    /// <summary>Pusta = dziś.</summary>
+    public DateTime? IssueDate { get; set; }
+
+    /// <summary>Stan pozycji PO korekcie; pusta lista = korekta do zera (zwrot całości).</summary>
+    public List<DzielnikApiInvoiceLine> Lines { get; set; } = new();
+
+    public string? Notes { get; set; }
+
+    /// <summary>Jawny numer; pusty = numer z serii korekt (KOR) serii faktury pierwotnej.</summary>
+    public string? Number { get; set; }
+}
+
 /// <summary>Faktura zwrócona przez Dzielnika (interesujący nas podzbiór kontraktu).</summary>
 public class DzielnikApiSalesInvoice
 {
@@ -84,6 +110,11 @@ public class DzielnikApiSalesInvoice
     public decimal GrossTotal { get; set; }
     public string? KsefNumber { get; set; }
     public string? KsefError { get; set; }
+
+    /// <summary>Dla faktury korygującej: dokument korygowany. null dla zwykłej faktury.</summary>
+    public string? CorrectedInvoiceGuid { get; set; }
+
+    public string? CorrectedNumber { get; set; }
 }
 
 /// <summary>Kształt błędu publicznego API Dzielnika - jeden dla wszystkich odpowiedzi innych niż sukces.</summary>

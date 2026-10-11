@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace ITBees.DzielnikIntegration.Services;
@@ -37,6 +37,15 @@ public class DzielnikApiClient : IDzielnikApiClient
     {
         using var request = CreateRequest(HttpMethod.Post, baseUrl,
             $"/api/v1/sales-invoices/{invoiceGuid}/send-to-ksef", apiKey);
+        return await SendAsync<DzielnikApiSalesInvoice>(request, ct);
+    }
+
+    public async Task<DzielnikApiSalesInvoice> CreateCorrectionAsync(string baseUrl, string apiKey,
+        string invoiceGuid, DzielnikApiCorrectionRequest correctionRequest, CancellationToken ct = default)
+    {
+        using var request = CreateRequest(HttpMethod.Post, baseUrl,
+            $"/api/v1/sales-invoices/{invoiceGuid}/corrections", apiKey);
+        request.Content = JsonContent.Create(correctionRequest, options: JsonOptions);
         return await SendAsync<DzielnikApiSalesInvoice>(request, ct);
     }
 

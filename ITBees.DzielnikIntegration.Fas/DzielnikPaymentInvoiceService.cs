@@ -1,6 +1,7 @@
-using ITBees.DzielnikIntegration.Entities;
+﻿using ITBees.DzielnikIntegration.Entities;
 using ITBees.DzielnikIntegration.Fas.Models;
 using ITBees.DzielnikIntegration.Services;
+using ITBees.FAS.Payments.Interfaces;
 using ITBees.FAS.Payments.Interfaces.Models;
 using ITBees.Interfaces.Platforms;
 using ITBees.Models.Payments;
@@ -55,18 +56,23 @@ public class DzielnikPaymentInvoiceService<TContext> : IDzielnikPaymentInvoiceSe
     private readonly IDzielnikApiClient _dzielnikApiClient;
     private readonly IPlatformSettingsService _platformSettingsService;
     private readonly ILogger<DzielnikPaymentInvoiceService<TContext>> _logger;
+    private readonly IOrderPackInvoiceContentProvider? _orderPackInvoiceContentProvider;
 
     public DzielnikPaymentInvoiceService(TContext context,
         IDzielnikIntegrationSettingsService settingsService,
         IDzielnikApiClient dzielnikApiClient,
         IPlatformSettingsService platformSettingsService,
-        ILogger<DzielnikPaymentInvoiceService<TContext>> logger)
+        ILogger<DzielnikPaymentInvoiceService<TContext>> logger,
+        // Opcjonalny: rejestruje go host sprzedający zamówienia (order pack) - bez niego płatności zamówień
+        // kończą się błędem "brak treści faktury" zamiast faktury.
+        IOrderPackInvoiceContentProvider? orderPackInvoiceContentProvider = null)
     {
         _context = context;
         _settingsService = settingsService;
         _dzielnikApiClient = dzielnikApiClient;
         _platformSettingsService = platformSettingsService;
         _logger = logger;
+        _orderPackInvoiceContentProvider = orderPackInvoiceContentProvider;
     }
 
     public async Task<DzielnikMonthlyInvoicesVm> CreateInvoicesForCurrentMonthAsync(CancellationToken ct = default)
@@ -188,27 +194,55 @@ public class DzielnikPaymentInvoiceService<TContext> : IDzielnikPaymentInvoiceSe
             return;
         }
 
-        var plan = session.InvoiceData?.SubscriptionPlan;
-        if (plan == null)
-        {
-            result.Errors.Add(new DzielnikInvoiceErrorVm
-            {
-                PaymentSessionGuid = session.Guid,
-                BuyerEmail = buyerEmail,
-                Error = "Sesja płatności nie ma danych do faktury (brak planu subskrypcji)."
-            });
-            return;
-        }
-
-        // Plany darmowe/testowe nie tworzą sprzedaży - nie ma czego fakturować.
-        if (plan.NetValue <= 0m)
-        {
-            result.SkippedFreeCount++;
-            return;
-        }
-
         var paymentDate = GetPaymentDate(session);
-        var request = BuildInvoiceRequest(session, plan, platformName, paymentDate, buyerEmail);
+        DzielnikApiSalesInvoiceRequest request;
+        if (session.OrderPackGuid != null)
+        {
+            // Zamówienie (order pack) nie ma planu - pozycje faktury podaje host: przy zakupie wszystko,
+            // co kupiono, przy odnowieniu subskrypcji zamówienia tylko usługa za okres.
+            var content = _orderPackInvoiceContentProvider?.GetInvoiceContent(session);
+            if (content == null)
+            {
+                result.Errors.Add(new DzielnikInvoiceErrorVm
+                {
+                    PaymentSessionGuid = session.Guid,
+                    BuyerEmail = buyerEmail,
+                    Error = "Płatność zamówienia bez treści faktury - aplikacja nie podała pozycji (IOrderPackInvoiceContentProvider)."
+                });
+                return;
+            }
+
+            if (content.Lines.Count == 0 || content.Lines.Sum(x => x.Quantity * x.UnitNetPrice) <= 0m)
+            {
+                result.SkippedFreeCount++;
+                return;
+            }
+
+            request = BuildOrderPackInvoiceRequest(session, content, paymentDate, buyerEmail);
+        }
+        else
+        {
+            var plan = session.InvoiceData?.SubscriptionPlan;
+            if (plan == null)
+            {
+                result.Errors.Add(new DzielnikInvoiceErrorVm
+                {
+                    PaymentSessionGuid = session.Guid,
+                    BuyerEmail = buyerEmail,
+                    Error = "Sesja płatności nie ma danych do faktury (brak planu subskrypcji)."
+                });
+                return;
+            }
+
+            // Plany darmowe/testowe nie tworzą sprzedaży - nie ma czego fakturować.
+            if (plan.NetValue <= 0m)
+            {
+                result.SkippedFreeCount++;
+                return;
+            }
+
+            request = BuildInvoiceRequest(session, plan, platformName, paymentDate, buyerEmail);
+        }
 
         try
         {
@@ -316,6 +350,30 @@ public class DzielnikPaymentInvoiceService<TContext> : IDzielnikPaymentInvoiceSe
             IsPaid = true,
             PaidAt = paymentDate,
             Notes = $"Płatność {session.PaymentOperator} z {paymentDate:yyyy-MM-dd HH:mm}, sesja {session.Guid}"
+        };
+    }
+
+    private DzielnikApiSalesInvoiceRequest BuildOrderPackInvoiceRequest(PaymentSession session,
+        OrderPackInvoiceContent content, DateTime paymentDate, string? buyerEmail)
+    {
+        var notes = $"Płatność {session.PaymentOperator} z {paymentDate:yyyy-MM-dd HH:mm}, sesja {session.Guid}";
+        return new DzielnikApiSalesInvoiceRequest
+        {
+            IssueDate = DateTime.Today,
+            SaleDate = paymentDate.Date,
+            Currency = string.IsNullOrWhiteSpace(content.Currency) ? null : content.Currency.ToUpperInvariant(),
+            Buyer = BuildBuyer(session, buyerEmail),
+            Lines = content.Lines.Select(x => new DzielnikApiInvoiceLine
+            {
+                Name = x.Name,
+                Unit = string.IsNullOrWhiteSpace(x.Unit) ? "szt." : x.Unit,
+                Quantity = x.Quantity,
+                UnitNetPrice = x.UnitNetPrice,
+                VatRate = x.VatPercentage
+            }).ToList(),
+            IsPaid = true,
+            PaidAt = paymentDate,
+            Notes = string.IsNullOrWhiteSpace(content.Notes) ? notes : $"{content.Notes}. {notes}"
         };
     }
 

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace ITBees.DzielnikIntegration.Fas.Setup;
 
@@ -14,5 +14,12 @@ public static class DzielnikFasDbModelBuilder
         modelBuilder.Entity<DzielnikInvoiceRecord>().HasKey(x => x.Id);
         modelBuilder.Entity<DzielnikInvoiceRecord>().HasIndex(x => x.PaymentSessionGuid).IsUnique();
         modelBuilder.Entity<DzielnikInvoiceRecord>().Property(x => x.GrossTotal).HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<DzielnikCorrectionRecord>().HasKey(x => x.Id);
+        modelBuilder.Entity<DzielnikCorrectionRecord>().HasIndex(x => x.CorrectedDzielnikInvoiceGuid).IsUnique();
+        modelBuilder.Entity<DzielnikCorrectionRecord>().HasIndex(x => x.PaymentSessionGuid);
+        modelBuilder.Entity<DzielnikCorrectionRecord>().Property(x => x.GrossTotal).HasColumnType("decimal(18,2)");
+        modelBuilder.Entity<DzielnikCorrectionRecord>().Property(x => x.CorrectedDzielnikInvoiceGuid).HasMaxLength(64);
+        modelBuilder.Entity<DzielnikCorrectionRecord>().Property(x => x.Reason).HasMaxLength(256);
     }
 }
