@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>ITBees.DzielnikIntegration.Fas</PackageId>
-    <Version>8.0.2</Version>
+    <Version>8.0.21</Version>
     <Authors>ITBees</Authors>
     <Description>Dzielnik.com invoicing bridge for the ITBees.FAS payment stack: automatically creates a Dzielnik sales invoice (with buyer e-mail) for every successfully paid PaymentSession via the ISuccessfulPaymentInvoiceIssuer hook and a background worker, offers an idempotent monthly catch-up run, and optionally submits invoices to KSeF through Dzielnik. Ships the /DzielnikMonthlyInvoices controller, the outbox entity and EF model registration.</Description>
     <PackageTags>dzielnik;fas;stripe;invoicing;ksef;faktura</PackageTags>
